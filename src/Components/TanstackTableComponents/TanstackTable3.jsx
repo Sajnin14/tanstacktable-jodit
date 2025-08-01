@@ -1,5 +1,12 @@
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
+import React, { useState } from "react";
 
 const employees = [
   {
@@ -85,70 +92,96 @@ const employees = [
 ];
 
 export default function TanstackTable3() {
+  const [sorting, setSorting] = useState([]);
+  const [globalFilter, setGlobalFilter] = React.useState();
+  const columns = [
+    {
+      accessorKey: "id",
+      header: "Id",
+    },
+    {
+      accessorKey: "name",
+      header: "Name",
+    },
+    {
+      accessorKey: "companyName",
+      header: "Company Name",
+    },
+    {
+      accessorKey: "jobPosition",
+      header: "Job Position",
+    },
+    {
+      accessorKey: "salary",
+      header: "Salary",
+    },
+    {
+      accessorKey: "employeeId",
+      header: "Employee Id",
+    },
+  ];
 
-    const columns = [
-        {
-            accessorKey: "name",
-            header: "Name"
-        },
-        {
-            accessorKey: "companyName",
-            header: "Company Name",
-        },
-        {
-            accessorKey: "jobPosition",
-            header: "Job Position"
-        },
-        {
-            accessorKey: "salary",
-            header: "Salary",
-        },
-        {
-            accessorKey: "employeeId",
-            header: "Employee Id"
-        }
-    ]
-
-    const table = useReactTable({
-        columns,
-        data: employees,
-        getCoreRowModel: getCoreRowModel()
-    })
+  const table = useReactTable({
+    columns,
+    data: employees,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    state: {
+      sorting,
+      globalFilter,
+    },
+  });
 
   return (
     <div className="w-3/4 mx-auto">
       <h3 className="text-3xl text-center font-semibold">Tanstack Table 3</h3>
 
       <div className="mt-8">
-         <table className="w-full">
-            <thead>
-                {
-                    table?.getHeaderGroups().map((headerGroup, idx) => <tr key={idx}>
-                        {
-                            headerGroup?.headers?.map((header, idx) => <th key={idx} className="py-3 px-6 border">
-                             {
-                                flexRender(header.column.columnDef.header, header.getContext())
-                             }
-                            </th> )
-                        }
-                    </tr>)
-                }
-            </thead>
+        <input
+          type="text"
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder="search here...."
+          className="py-3 px-6 border rounded-md w-2/3 flex"
+        />
+        <table className="w-full mt-5">
+          <thead>
+            {table?.getHeaderGroups().map((headerGroup, idx) => (
+              <tr key={idx}>
+                {headerGroup?.headers?.map((header, idx) => (
+                  <th
+                    key={idx}
+                    className="py-3 px-6 border"
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    <button className="inline ">
+                      <ArrowUpDown />
+                    </button>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
 
-            <tbody>
-                {
-                    table?.getRowModel().rows.map((row, idx) => <tr key={idx}>
-                        {
-                            row?.getVisibleCells().map((cell) => <td key={cell.id} className="border py-2 px-6">
-                            {
-                                flexRender(cell.column.columnDef.cell, cell.getContext())
-                            }
-                            </td>)
-                        }
-                    </tr>)
-                }
-            </tbody>
-         </table>
+          <tbody>
+            {table?.getRowModel().rows.map((row, idx) => (
+              <tr key={idx}>
+                {row?.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className="border py-2 px-6">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

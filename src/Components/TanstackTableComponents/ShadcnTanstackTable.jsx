@@ -1,7 +1,9 @@
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -12,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import React from "react";
+import React, { useState } from "react";
 
 // sample data
 const flowers = [
@@ -88,7 +90,14 @@ export default function ShadcnTanstackTable() {
     pageSize: 3,
   });
 
+  const [sorting, setSorting] = useState([]);
+  const [globalFilter, setGlobalFilter] = React.useState("");
+
   const columns = [
+    {
+      accessorKey: "id",
+      header: "Id",
+    },
     {
       accessorKey: "name",
       header: "Name",
@@ -110,6 +119,7 @@ export default function ShadcnTanstackTable() {
     {
       accessorKey: "origin",
       header: "Origin",
+      sortingFns: false,
     },
   ];
 
@@ -118,9 +128,15 @@ export default function ShadcnTanstackTable() {
     data: flowers,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter, 
     state: {
       pagination,
+      sorting,
+      globalFilter,
     },
   });
 
@@ -133,12 +149,31 @@ export default function ShadcnTanstackTable() {
       </h3>
 
       <div className="mt-8">
-        <Table className={"border"}>
+        <input
+          
+          value={globalFilter ?? ""}
+          onChange={e => setGlobalFilter(e.target.value)}
+          placeholder="filter here"
+          className="w-2/3 border py-3 px-8 rounded-md "
+        />
+        <Table className={"border mt-6"}>
           <TableHeader>
             {table?.getHeaderGroups().map((headerGroup, idx) => (
               <TableRow key={idx} className="[&>th]:border-r last:border-r-0">
                 {headerGroup?.headers?.map((header, idx) => (
                   <TableHead key={idx} className="text-center">
+                    <button
+                      onClick={header.column.getToggleSortingHandler()}
+                      className="inline text-purple-700 font-semibold mr-3 underline"
+                    >
+                      {header.column.getCanSort()
+                        ? header.column.getNextSortingOrder() === "asc"
+                          ? "Sort ascending"
+                          : header.column.getNextSortingOrder() === "desc"
+                          ? "Sort descending"
+                          : "clear sort"
+                        : undefined}
+                    </button>
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext()
